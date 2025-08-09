@@ -69,7 +69,8 @@ STR_DELCARE_STMT(g_str_released_en, "released") \
 STR_DELCARE_STMT(g_str_on_en, "on") \
 STR_DELCARE_STMT(g_str_off_en, "off") \
 STR_DELCARE_STMT(g_str_unknown_en, "unknown") \
-STR_DELCARE_STMT(g_str_plz_unlock_first, "请先解锁")
+STR_DELCARE_STMT(g_str_plz_unlock_first, "请先解锁") \
+STR_DELCARE_STMT(g_str_gen_file_ok, "生成文件成功")
 
 LIT_STRINGS_LIST
 

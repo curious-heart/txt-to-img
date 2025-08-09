@@ -28,6 +28,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_selTxtFileBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -39,7 +42,7 @@ private:
     QList<QVector<internal_px_data_type>> m_raw_px_array;
 
 private:
-    void process_txt_data();
-    void gen_bin_file();
+    bool parse_txt_data(QString *ret_str = nullptr);
+    bool gen_bin_file(QString *ret_str = nullptr);
 };
 #endif // MAINWINDOW_H

@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QDir>
 #include <QImage>
+#include <QFileDialog>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -26,15 +27,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::process_txt_data()
+bool MainWindow::parse_txt_data(QString *ret_str)
 {
     QFile txt_file(m_txt_file_fpn);
     QString log_str;
 
     if(!txt_file.open(QIODevice::ReadOnly))
     {
-        QMessageBox::critical(this, "Error", QString("打开文件失败：%1").arg(txt_file.errorString()));
-        return;
+        log_str += QString("打开文件失败：%1").arg(txt_file.errorString());
+        DIY_LOG(LOG_ERROR, log_str);
+        if(ret_str) *ret_str += log_str;
+        return false;
     }
     bool all_data_valid = true;
     m_max_item_cnt_per_line = 0;
@@ -73,8 +76,8 @@ void MainWindow::process_txt_data()
     if(!all_data_valid)
     {
         DIY_LOG(LOG_ERROR, log_str);
-        QMessageBox::critical(this, "Error", log_str);
-        return;
+        if(ret_str) *ret_str += log_str;
+        return false;
     }
     for(int row = 0; row < m_raw_px_array.size(); ++row)
     {
@@ -87,11 +90,14 @@ void MainWindow::process_txt_data()
             std::fill(v_ref.begin() + ori_size, v_ref.end(), m_data_proc_params.append_px_val);
         }
     }
-    gen_bin_file();
+    log_str += "解析文本文件成功";
+    if(ret_str) *ret_str += log_str;
+    return true;
 }
 
-void MainWindow::gen_bin_file()
+bool MainWindow::gen_bin_file(QString * ret_str)
 {
+    QString log_str;
     QFileInfo file_info(m_txt_file_fpn);
     QString pth = file_info.path();
     QString base_name = file_info.baseName();
@@ -99,6 +105,11 @@ void MainWindow::gen_bin_file()
                     QImage::Format_Grayscale16 : QImage::Format_Grayscale8;
     int width = m_max_item_cnt_per_line, height = m_raw_px_array.size();
     QImage img(width, height, img_type);
+
+    if(0 == width || 0 == height || 0 == m_max_item_cnt_per_line)
+    {
+        return false;
+    }
 
     for (int y = 0; y < height; ++y)
     {
@@ -130,7 +141,25 @@ void MainWindow::gen_bin_file()
     }
     else
     {
-        DIY_LOG(LOG_ERROR, QString("open % error: %2").arg(raw_data_file.fileName(),
-                                                           raw_data_file.errorString()));
+        log_str += QString("write %1 fails: open file error: %2").arg(raw_data_file.fileName(),
+                                                  raw_data_file.errorString());
+        DIY_LOG(LOG_ERROR, log_str);
     }
+
+    if(QImage::Format_Grayscale16 == img_type)
+    {
+        QImage img_8bit = convertGrayscale16To8(img);
+        img_8bit.save(pth + "/" + base_name + "-8bit.png");
+    }
+    if(!log_str.isEmpty()) log_str += "\n";
+    log_str += "Generate image file ok.";
+
+    if(ret_str) *ret_str += log_str;
+    return true;
 }
+
+void MainWindow::on_selTxtFileBtn_clicked()
+{
+    QFileDialog::getOpenFileName(this, "选择文本文件", "./", tr("Txt (*.txt)"));
+}
+

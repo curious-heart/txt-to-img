@@ -215,8 +215,8 @@ bool MainWindow::gen_bin_file(QImage * disp_img, QString *info_str, QString *ret
 
     if(info_str)
     {
-        *info_str = QString("图像文件width: %1, height: %2, bit: %3\n保存在 %4%5").arg(width).arg(height)
-                .arg((QImage::Format_Grayscale8 == img_type) ? 8 : 16).arg(pth).arg(out_file_names);
+        *info_str = QString("图像文件width: %1, height: %2, bit: %3\n保存在 %4/\n%5").arg(width).arg(height)
+                .arg((QImage::Format_Grayscale8 == img_type) ? 8 : 16).arg(pth, out_file_names);
     }
     if(disp_img) *disp_img = img_8bit;
     return true;
@@ -257,7 +257,7 @@ void MainWindow::txt_to_img()
     log_str.clear();
 
     QImage disp_img;
-    ret = gen_bin_file(&disp_img, &log_str, &info_str);
+    ret = gen_bin_file(&disp_img, &info_str, &log_str);
     if(ret)
     {
         ui->imgInfoLbl->setText(info_str);
@@ -291,8 +291,9 @@ void MainWindow::img_to_txt()
     QFileInfo file_info(m_in_file_fpn);
     QString pth = file_info.path();
     ui->hisPthInvLEdit->setText(pth);
-    QString txt_file_fpn = pth + "/" + file_info.baseName();
-    txt_file_fpn += QString((TXT_IN_HEX == m_txt_data_format) ? "-hex" : "-dec") + ".txt";
+    QString txt_file_n = file_info.baseName()
+            + QString((TXT_IN_HEX == m_txt_data_format) ? "-hex" : "-dec") + ".txt";;
+    QString txt_file_fpn = pth + "/" + txt_file_n;
 
     QFile txt_file(txt_file_fpn);
     if(!txt_file.open(QIODevice::WriteOnly))
@@ -330,7 +331,7 @@ void MainWindow::img_to_txt()
 
     txt_file.close();
 
-    info_str += QString("\nTxt文件生成成功，保存在 %1").arg(txt_file_fpn);
+    info_str += QString("\nTxt文件生成成功，保存在 %1/\n%2").arg(pth, txt_file_n);
     ui->imgInfoLbl->setText(info_str);
 
     QMessageBox::information(this, "OK", g_str_gen_file_ok);
